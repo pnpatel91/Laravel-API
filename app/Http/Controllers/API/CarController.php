@@ -4,25 +4,55 @@ namespace App\Http\Controllers\API;
 
 use App\Http\Controllers\Controller;
 use Illuminate\Http\Request;
-use App\Models\Book;
+use App\Models\Car;
 use Validator;
 
-class BookController extends Controller
+class CarController extends Controller
 {
     /**
      * Display a listing of the resource.
      *
      * @return \Illuminate\Http\Response
      */
-    public function index()
-    {
-        $books = Book::all();
-        $data = $books->toArray();
+    public function index(Request $request)
+    {	
+    	$input = $request->all();
+
+    	if(count($input) > 0){
+    		
+    		$cars = Car::query();
+    		if(isset($input['name'])){
+    			$cars->where('name', 'LIKE', "%{$input['name']}%");
+    		}
+    		if(isset($input['colour'])){
+    			$cars->where('colour', $input['colour']);
+    		}
+    		if(isset($input['price'])){
+    			$cars->where('price', '>=', $input['price']);
+    		}
+    		if(isset($input['plate'])){
+    			$cars->where('plate', 'LIKE', "%{$input['plate']}%");
+    		}
+    		if(isset($input['doors'])){
+    			$cars->where('doors', '=', $input['doors']);
+    		}
+    		if(isset($input['transmission'])){
+    			$cars->where('transmission', $input['transmission']);
+    		}
+    		if(isset($input['fuel'])){
+    			$cars->where('fuel', $input['fuel']);
+    		}
+			   	$data = $cars->get();
+    	}else{
+        	$cars = Car::all();
+        	$data = $cars->toArray();
+    	}
+
 
         $response = [
             'success' => true,
             'data' => $data,
-            'message' => 'Books retrieved successfully.'
+            'message' => 'cars retrieved successfully.'
         ];
 
         return response()->json($response, 200);
@@ -38,10 +68,15 @@ class BookController extends Controller
     public function store(Request $request)
     {
         $input = $request->all();
-
+       
         $validator = Validator::make($input, [
             'name' => 'required',
-            'author' => 'required'
+            'colour' => 'required',
+            'price'  => 'required|numeric',
+            'plate' => 'required',
+            'doors' => 'required|numeric',
+            'transmission' => 'required',
+            'fuel' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -53,13 +88,13 @@ class BookController extends Controller
             return response()->json($response, 404);
         }
 
-        $book = Book::create($input);
-        $data = $book->toArray();
+        $car = Car::create($input);
+        $data = $car->toArray();
 
         $response = [
             'success' => true,
             'data' => $data,
-            'message' => 'Book stored successfully.'
+            'message' => 'Car stored successfully.'
         ];
 
         return response()->json($response, 200);
@@ -74,14 +109,14 @@ class BookController extends Controller
      */
     public function show($id)
     {
-        $book = Book::find($id);
-        $data = $book->toArray();
+        $car = Car::find($id);
+        $data = $car->toArray();
 
-        if (is_null($book)) {
+        if (is_null($car)) {
             $response = [
                 'success' => false,
                 'data' => 'Empty',
-                'message' => 'Book not found.'
+                'message' => 'Car not found.'
             ];
             return response()->json($response, 404);
         }
@@ -104,13 +139,19 @@ class BookController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function update(Request $request, Book $book)
+    public function update(Request $request,$id)
     {
+    	$car = Car::find($id);
         $input = $request->all();
 
         $validator = Validator::make($input, [
             'name' => 'required',
-            'author' => 'required'
+            'colour' => 'required',
+            'price'  => 'required|numeric',
+            'plate' => 'required',
+            'doors' => 'required|numeric',
+            'transmission' => 'required',
+            'fuel' => 'required',
         ]);
 
         if ($validator->fails()) {
@@ -122,16 +163,21 @@ class BookController extends Controller
             return response()->json($response, 404);
         }
 
-        $book->name = $input['name'];
-        $book->author = $input['author'];
-        $book->save();
+        $car->name = $input['name'];
+        $car->colour = $input['colour'];
+        $car->price = $input['price'];
+        $car->plate = $input['plate'];
+        $car->doors = $input['doors'];
+        $car->transmission = $input['transmission'];
+        $car->fuel = $input['fuel'];
+        $car->save();
 
-        $data = $book->toArray();
+        $data = $car->toArray();
 
         $response = [
             'success' => true,
             'data' => $data,
-            'message' => 'Book updated successfully.'
+            'message' => 'Car updated successfully.'
         ];
 
         return response()->json($response, 200);
@@ -144,15 +190,16 @@ class BookController extends Controller
      * @param  int $id
      * @return \Illuminate\Http\Response
      */
-    public function destroy(Book $book)
+    public function destroy($id)
     {
-        $book->delete();
-        $data = $book->toArray();
+    	$car = Car::find($id);
+        $data = $car;
+        $car->delete();
 
         $response = [
             'success' => true,
             'data' => $data,
-            'message' => 'Book deleted successfully.'
+            'message' => 'Car deleted successfully.'
         ];
 
         return response()->json($response, 200);
